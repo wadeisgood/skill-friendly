@@ -9,6 +9,8 @@ Minimal MVP for GNOME Wayland context-menu probing.
   - active window
   - fixed area
 - Basic OCR via tesseract (`chi_tra+eng`)
+- Before/after fullscreen diff via Pillow
+- Optional crop generation when a changed bounding box is found
 - JSON report written to `/tmp/menu-probe/report.json`
 
 ## Script
@@ -27,10 +29,10 @@ Outputs:
 
 ## Current status
 
-This is only the screenshot/OCR backbone.
+This now includes the initial screenshot/OCR backbone plus a simple before/after diff step.
 It does **not yet** do:
 
-- before/after diff for popup detection
+- trigger the context menu itself
 - AT-SPI menu subtree dump
 - OCR bounding boxes for `複製`
 - matching OCR result to AT-SPI actionable nodes

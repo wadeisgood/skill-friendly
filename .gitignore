@@ -1,0 +1,15 @@
+# Local OpenClaw workspace / personal runtime files
+.openclaw/
+memory/
+AGENTS.md
+HEARTBEAT.md
+SOUL.md
+TOOLS.md
+
+# Local skill work not yet curated into this repo
+skills/clawteam/
+
+# Local generated / personal artifacts
+.pptx-venv/
+*.pptx
+make_etf_ppt.py

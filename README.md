@@ -1,8 +1,10 @@
 # OpenClaw-friendly Skills
 
-這個 repo 現在整理成一個**多 skill 技能倉庫**，不是只有單一 skill。
+這個 repo 是一個**已整理、已納管的 OpenClaw skill 倉庫**。
 
-## 目前保留的 skill
+它只保留目前確定有維護、已打包、已提交到 git 的技能內容；本地工作區中的個人檔案、記憶檔、暫存技能與實驗資料不納入版本控制。
+
+## 正式納管的 skills
 
 - `skills/control-gui-setting/`
   - 修復 Linux 桌面環境下 OpenClaw managed browser 無法正常開啟 / 控制的問題
@@ -18,15 +20,6 @@
 - `chatgpt-image-download.skill`
 
 這些是對應 skill 的打包版本，可直接分發或安裝。
-
-## 本次整理方向
-
-已將 repo 內容朝以下原則收斂：
-
-- **一個 skill 只負責一類問題**
-- **避免不同 skill 重複描述同一套流程**
-- **把 ChatGPT 圖片下載流程獨立成專門 skill**
-- **讓 README 與實際 repo 結構一致**
 
 ## 技能邊界
 
@@ -61,6 +54,21 @@
 - Linux GUI browser 啟動修復
 - 通用 Wayland 桌面控制
 
+## 未納管內容
+
+工作區裡可能還存在一些**本地用途**內容，例如：
+
+- `AGENTS.md`
+- `SOUL.md`
+- `TOOLS.md`
+- `HEARTBEAT.md`
+- `memory/`
+- `.openclaw/`
+- `skills/clawteam/`
+- 個人腳本、虛擬環境、簡報檔
+
+這些內容不是這個 repo 的正式技能發布範圍，因此已透過 `.gitignore` 排除，避免把個人或實驗性資料混進 skill 倉庫。
+
 ## 結構
 
 ```text
@@ -79,3 +87,4 @@ skills/
 - SKILL.md 保持精簡
 - 細節放到 `references/`
 - 打包檔與來源內容同步更新
+- 個人工作區資料不要直接混進 repo

@@ -14,7 +14,7 @@ Requires: draw.io desktop app
 import os
 import shutil
 import subprocess
-from typing import Optional
+from typing import Optional, List
 
 
 class DrawioExportError(RuntimeError):
@@ -22,24 +22,49 @@ class DrawioExportError(RuntimeError):
 
 
 def find_drawio() -> str:
-    """Find the draw.io CLI executable. Raises RuntimeError if not found."""
-    # Common executable names across platforms
-    candidates = ["draw.io", "drawio", "draw.io.exe"]
+    """Find the draw.io CLI executable. Prefer non-Snap installs when available."""
+    candidates: List[str] = []
 
-    for name in candidates:
+    # Prefer common non-Snap Linux locations first because Snap builds can fail
+    # for headless export in restricted GL/display environments.
+    for path in [
+        "/usr/bin/drawio",
+        "/usr/local/bin/drawio",
+        "/usr/bin/draw.io",
+        "/usr/local/bin/draw.io",
+    ]:
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            candidates.append(path)
+
+    # Then fall back to PATH resolution.
+    for name in ["drawio", "draw.io", "draw.io.exe"]:
         path = shutil.which(name)
         if path:
-            return path
+            candidates.append(path)
 
     # macOS app bundle path
     mac_path = "/Applications/draw.io.app/Contents/MacOS/draw.io"
     if os.path.isfile(mac_path):
-        return mac_path
+        candidates.append(mac_path)
+
+    seen = set()
+    deduped = []
+    for path in candidates:
+        if path not in seen:
+            seen.add(path)
+            deduped.append(path)
+
+    # Prefer non-snap path when possible.
+    for path in deduped:
+        if "/snap/" not in path and not path.startswith("/snap/bin/"):
+            return path
+    if deduped:
+        return deduped[0]
 
     raise RuntimeError(
         "draw.io desktop app is not installed. Install it with:\n"
         "  macOS:   brew install --cask drawio\n"
-        "  Linux:   snap install drawio\n"
+        "  Linux:   snap install drawio or install the official .deb/AppImage\n"
         "  Windows: winget install JGraph.Draw"
     )
 
@@ -56,6 +81,16 @@ def get_drawio_version() -> str:
         return output.split("\n")[0] if output else "unknown"
     except (subprocess.TimeoutExpired, OSError):
         return "unknown"
+
+
+def _should_wrap_with_xvfb(drawio_path: str) -> bool:
+    """Return True when export should be wrapped in xvfb-run for headless safety."""
+    if os.environ.get("DISPLAY"):
+        return False
+    if shutil.which("xvfb-run") is None:
+        return False
+    # Non-Snap desktop builds often work fine under xvfb-run in headless environments.
+    return "/snap/" not in drawio_path and not drawio_path.startswith("/snap/bin/")
 
 
 def export_diagram(
@@ -100,7 +135,7 @@ def export_diagram(
     drawio = find_drawio()
     os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
 
-    cmd = [
+    base_cmd = [
         drawio,
         "--export", drawio_path,
         "--output", output_path,
@@ -109,19 +144,25 @@ def export_diagram(
 
     if page_index is not None:
         # draw.io CLI expects 1-based page indexes
-        cmd.extend(["--page-index", str(page_index + 1)])
+        base_cmd.extend(["--page-index", str(page_index + 1)])
     if scale is not None:
-        cmd.extend(["--scale", str(scale)])
+        base_cmd.extend(["--scale", str(scale)])
     if width is not None:
-        cmd.extend(["--width", str(width)])
+        base_cmd.extend(["--width", str(width)])
     if height is not None:
-        cmd.extend(["--height", str(height)])
+        base_cmd.extend(["--height", str(height)])
     if border > 0:
-        cmd.extend(["--border", str(border)])
+        base_cmd.extend(["--border", str(border)])
     if transparent:
-        cmd.append("--transparent")
+        base_cmd.append("--transparent")
     if crop:
-        cmd.append("--crop")
+        base_cmd.append("--crop")
+
+    cmd = list(base_cmd)
+    method = "draw.io-cli"
+    if _should_wrap_with_xvfb(drawio):
+        cmd = ["xvfb-run", "-a"] + cmd
+        method = "draw.io-cli+xvfb"
 
     result = subprocess.run(
         cmd,
@@ -154,6 +195,6 @@ def export_diagram(
     return {
         "output": os.path.abspath(output_path),
         "format": fmt,
-        "method": "draw.io-cli",
+        "method": method,
         "file_size": os.path.getsize(output_path),
     }

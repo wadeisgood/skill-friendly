@@ -1,0 +1,6 @@
+.codex
+*.pdf
+*.docx
+*.html
+__pycache__/
+*.pyc

@@ -13,6 +13,9 @@ Target commands:
 - `opencli chatgpt-web new`
 - `opencli chatgpt-web ask "..."`
 - `opencli chatgpt-web read`
+- `opencli chatgpt-web debug`
+- `opencli chatgpt-web scan-dom`
+- `opencli chatgpt-web scan-conversation`
 
 Current behavior note:
 - `read` now prefers reusing an existing `chatgpt.com` tab before opening a new page.
@@ -63,6 +66,15 @@ That makes it unsuitable for Ubuntu + Chrome web usage.
 - extract the latest visible assistant response from the page
 - reuse the active/existing ChatGPT tab when available so it reads the same conversation that `ask` used
 
+### debug
+- dump compact page state for quick selector debugging
+
+### scan-dom
+- inspect visible DOM-derived state such as composer, send button, stop button, article/message counts
+
+### scan-conversation
+- inspect the latest visible user/assistant snippets and a short conversation preview
+
 ## Implementation notes
 
 Possible implementation approaches:
@@ -96,4 +108,12 @@ opencli chatgpt-web status
 opencli chatgpt-web new
 opencli chatgpt-web ask "請回覆：read 測試成功。"
 opencli chatgpt-web read
+```
+
+Debugging flow:
+
+```bash
+opencli chatgpt-web debug
+opencli chatgpt-web scan-dom
+opencli chatgpt-web scan-conversation
 ```

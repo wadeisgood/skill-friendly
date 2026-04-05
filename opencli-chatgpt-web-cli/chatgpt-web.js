@@ -63,6 +63,11 @@ async function pageSnapshot(page) {
       .filter(item => item.role && item.text);
     const assistantTexts = messages.filter(item => item.role === 'assistant').map(item => item.text);
     const userTexts = messages.filter(item => item.role === 'user').map(item => item.text);
+    const conversationNodes = Array.from(document.querySelectorAll('main article, [data-message-author-role], main [class*="conversation"], nav, aside'));
+    const conversationPreview = conversationNodes
+      .map(el => cleanText(el.innerText || el.textContent || ''))
+      .filter(Boolean)
+      .slice(0, 20);
 
     return {
       url: location.href,
@@ -80,6 +85,7 @@ async function pageSnapshot(page) {
       articleTexts,
       assistantTexts,
       userTexts,
+      conversationPreview,
       lastArticleText: articleTexts.length ? articleTexts[articleTexts.length - 1] : ''
     };
   }`);
@@ -348,7 +354,7 @@ cli({
   strategy: Strategy.COOKIE,
   browser: true,
   args: [],
-  columns: ['title', 'composerTag', 'composerText', 'sendButton', 'loginMarkers', 'articleCount', 'lastArticleText'],
+  columns: ['title', 'composerTag', 'composerText', 'sendButton', 'loginMarkers', 'articleCount', 'messageCount', 'assistantCount', 'lastArticleText'],
   func: async () => {
     const page = new Page('default');
     await ensureChatGPT(page);
@@ -360,7 +366,58 @@ cli({
       sendButton: String(snap.sendButtonEnabled),
       loginMarkers: String(snap.loginMarkers),
       articleCount: String(snap.articleCount),
+      messageCount: String(snap.messageCount),
+      assistantCount: String(snap.assistantCount),
       lastArticleText: snap.lastArticleText || '',
+    }];
+  },
+});
+
+cli({
+  site: 'chatgpt-web',
+  name: 'scan-dom',
+  description: 'Scan visible ChatGPT DOM-derived state for debugging selectors and layout changes',
+  domain: 'chatgpt.com',
+  strategy: Strategy.COOKIE,
+  browser: true,
+  args: [],
+  columns: ['url', 'title', 'composer', 'composerTag', 'sendButton', 'stopButton', 'loginMarkers', 'articleCount', 'messageCount', 'assistantCount'],
+  func: async () => {
+    const page = new Page('default');
+    await ensureChatGPT(page);
+    const snap = await waitForReady(page);
+    return [{
+      url: snap.url,
+      title: snap.title,
+      composer: String(snap.composer),
+      composerTag: snap.composerTag,
+      sendButton: String(snap.sendButtonEnabled),
+      stopButton: String(snap.stopButton),
+      loginMarkers: String(snap.loginMarkers),
+      articleCount: String(snap.articleCount),
+      messageCount: String(snap.messageCount),
+      assistantCount: String(snap.assistantCount),
+    }];
+  },
+});
+
+cli({
+  site: 'chatgpt-web',
+  name: 'scan-conversation',
+  description: 'Inspect the visible conversation and return the latest user/assistant text snippets',
+  domain: 'chatgpt.com',
+  strategy: Strategy.COOKIE,
+  browser: true,
+  args: [],
+  columns: ['latestUser', 'latestAssistant', 'conversationPreview'],
+  func: async () => {
+    const page = new Page('default');
+    await ensureChatGPT(page);
+    const snap = await waitForReady(page);
+    return [{
+      latestUser: (snap.userTexts || []).length ? snap.userTexts[snap.userTexts.length - 1] : '',
+      latestAssistant: chooseLatestAssistantText(snap),
+      conversationPreview: (snap.conversationPreview || []).slice(0, 5).join(' | '),
     }];
   },
 });

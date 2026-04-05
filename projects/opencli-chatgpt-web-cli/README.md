@@ -95,6 +95,8 @@ opencli chatgpt-web status
 opencli chatgpt-web open
 opencli chatgpt-web new
 opencli chatgpt-web debug
+opencli chatgpt-web scan-dom
+opencli chatgpt-web scan-conversation
 opencli chatgpt-web ask "今天天氣如何？請用繁體中文簡短回答。"
 opencli chatgpt-web read
 ```
@@ -157,6 +159,15 @@ Recommended flow:
 2. `new`
 3. `ask`
 4. `read`
+
+Useful debugging commands:
+
+- `debug`
+  - compact selector/page-state dump
+- `scan-dom`
+  - inspect visible DOM-derived state such as composer, send button, stop button, and message counts
+- `scan-conversation`
+  - inspect the latest visible user/assistant snippets plus a short conversation preview
 
 ## Next steps
 

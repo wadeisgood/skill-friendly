@@ -1,4 +1,4 @@
-# OpenClaw-friendly Skills
+# skill-friendly Skills
 
 這個 repo 是一個**已整理、已納管的 OpenClaw skill 與相關專案倉庫**。
 
